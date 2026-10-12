@@ -3,24 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Examen Oficial - Policía Nacional</title>
-
-<!-- Librería PDF.js oficial -->
+<title>Examen Oficial Policía Nacional</title>
+<!-- Librería PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  
   body {
     background-color: #525659;
     font-family: Arial, Helvetica, sans-serif;
     color: #000;
   }
 
-  /* BARRA DE HERRAMIENTAS */
+  /* BARRA SUPERIOR */
   #toolbar {
     position: fixed;
     top: 0; left: 0; right: 0;
-    height: 60px;
+    height: 55px;
     background: #0f172a;
     color: #fff;
     display: flex;
@@ -30,12 +29,12 @@
     z-index: 1000;
     box-shadow: 0 2px 10px rgba(0,0,0,0.4);
   }
-  #toolbar h1 { font-size: 15px; font-weight: 700; letter-spacing: 0.5px; }
+  #toolbar h1 { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
   .btn {
     background: #2563eb;
     color: white;
     border: none;
-    padding: 9px 16px;
+    padding: 8px 16px;
     border-radius: 4px;
     font-weight: bold;
     cursor: pointer;
@@ -46,39 +45,39 @@
   .btn-secondary { background: #475569; }
   .btn-secondary:hover { background: #334155; }
 
-  /* VENTANA MODAL DE CONFIGURACIÓN */
+  /* VENTANA MODAL */
   #editorModal {
     display: none;
     position: fixed;
-    top: 70px;
+    top: 65px;
     left: 50%;
     transform: translateX(-50%);
-    width: 95%;
-    max-width: 900px;
+    width: 90%;
+    max-width: 850px;
     background: white;
     border-radius: 8px;
-    padding: 24px;
+    padding: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     z-index: 1100;
     max-height: 85vh;
     overflow-y: auto;
   }
-  .upload-container {
+  .upload-box {
     background: #f0f9ff;
     border: 2px dashed #0284c7;
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 6px;
+    padding: 16px;
     text-align: center;
-    margin-bottom: 16px;
+    margin-bottom: 15px;
   }
   .config-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: 1fr 2fr;
     gap: 12px;
     margin-bottom: 12px;
   }
   .config-grid label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     color: #334155;
     display: flex;
@@ -90,20 +89,20 @@
     border: 1px solid #cbd5e1;
     border-radius: 4px;
   }
-  #rawQuestionsInput {
+  #rawInput {
     width: 100%;
-    height: 240px;
+    height: 220px;
     font-family: monospace;
-    font-size: 12px;
-    padding: 10px;
+    font-size: 11px;
+    padding: 8px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
     margin-top: 6px;
   }
 
-  /* PÁGINAS A4 */
+  /* PÁGINAS A4 IDÉNTICAS AL EXAMEN OFICIAL */
   #pages-container {
-    margin-top: 80px;
+    margin-top: 75px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -113,95 +112,96 @@
   .sheet {
     width: 210mm;
     min-height: 297mm;
+    height: 297mm;
     background: white;
     box-shadow: 0 4px 15px rgba(0,0,0,0.35);
-    padding: 16mm 20mm;
+    padding: 16mm 20mm 14mm 20mm;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
-  /* ENCABEZADOS */
+  /* ENCABEZADO OFICIAL */
   .page-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    border-bottom: 1px solid #000;
-    padding-bottom: 6px;
-    margin-bottom: 14px;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 5px;
+    margin-bottom: 12px;
   }
-  .header-left { font-size: 11px; font-weight: bold; letter-spacing: 0.5px; }
+  .header-left {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
   .header-box {
     border: 1.5px solid #000;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
   }
-  .page-body { flex-grow: 1; }
 
-  /* PREGUNTAS */
+  /* ESTRUCTURA EXACTA DE LAS PREGUNTAS (ESTILO DFP) */
+  .page-body {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
   .question-block {
-    margin-bottom: 11px;
+    margin-bottom: 13px;
     font-size: 9.5pt;
     line-height: 1.35;
     page-break-inside: avoid;
     break-inside: avoid;
   }
-  .question-title { font-weight: bold; text-align: justify; margin-bottom: 3px; }
-  .options-group { padding-left: 20px; }
-  .option-line { text-align: justify; margin-bottom: 2px; }
-  .opt-letter { display: inline-block; width: 18px; }
+  .question-title {
+    font-weight: 700;
+    text-align: justify;
+    margin-bottom: 3px;
+  }
+  .options-group {
+    padding-left: 20px;
+  }
+  .option-line {
+    text-align: justify;
+    margin-bottom: 2px;
+  }
+  .opt-letter {
+    font-weight: normal;
+    display: inline-block;
+    width: 18px;
+  }
 
-  /* PIE DE PÁGINA */
+  /* PIE DE PÁGINA OFICIAL */
   .page-footer {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    border-top: 1px solid #000;
+    border-top: 1.5px solid #000;
     padding-top: 6px;
     font-size: 9pt;
     font-weight: bold;
+    text-transform: uppercase;
   }
-  .footer-center { text-align: center; }
+  .footer-center { text-align: center; font-weight: 700; }
   .footer-right { text-align: right; }
 
-  /* PORTADA */
-  .cover-header { text-align: center; margin: 15mm 0; }
-  .cover-title { font-size: 14pt; font-weight: 800; line-height: 1.4; }
-  .cover-subtitle { font-size: 12pt; margin-top: 14px; font-weight: bold; }
-  .cover-user-box {
-    border: 1px solid #000;
-    margin: 22px 0;
-    padding: 12px 16px;
-    font-size: 10.5pt;
-    font-weight: bold;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+  /* REGLAS DE IMPRESIÓN LIMPIA */
+  @page {
+    size: A4 portrait;
+    margin: 0;
   }
-  .cover-instructions { margin-top: 20px; font-size: 9.5pt; line-height: 1.45; }
-  .cover-instructions h3 { text-align: center; margin-bottom: 10px; }
-  .cover-instructions ul {
-    list-style-type: square;
-    padding-left: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-  }
-  .cover-notice { text-align: center; font-weight: bold; font-size: 11pt; margin-top: 35px; }
-
-  /* FORMATO DE IMPRESIÓN */
-  @page { size: A4 portrait; margin: 0; }
   @media print {
     html, body {
       background: #fff !important;
       margin: 0 !important;
       padding: 0 !important;
-      height: auto !important;
     }
     #toolbar, #editorModal { display: none !important; }
     #pages-container { margin: 0 !important; padding: 0 !important; display: block !important; }
@@ -221,7 +221,7 @@
 <body>
 
 <div id="toolbar">
-  <h1>DIVISIÓN DE FORMACIÓN - POLICÍA NACIONAL</h1>
+  <h1>MAQUETADOR OFICIAL POLICÍA NACIONAL</h1>
   <div>
     <button class="btn btn-secondary" onclick="toggleModal(true)">Subir / Cargar Test</button>
     <button class="btn" onclick="window.print()">Imprimir / Guardar en PDF</button>
@@ -229,48 +229,39 @@
 </div>
 
 <div id="editorModal">
-  <h2 style="font-size:16px; margin-bottom:12px;">Cargar Examen</h2>
+  <h2 style="font-size:15px; margin-bottom:12px;">Cargar Nuevo Examen</h2>
 
-  <!-- SECCIÓN DE CARGA CON ACCIÓN DIRECTA -->
-  <div class="upload-container">
-    <p style="font-weight:bold; color:#0369a1; margin-bottom:8px;">Subir archivo desde el dispositivo (.pdf o .txt):</p>
-    
+  <div class="upload-box">
     <input type="file" id="pdfFileInput" accept=".pdf,.txt" style="display:none;">
-    <button type="button" class="btn" style="background:#0284c7; padding:10px 22px; font-size:14px;" onclick="document.getElementById('pdfFileInput').click();">
-      📂 Buscar archivo en el equipo
+    <button type="button" class="btn" style="background:#0284c7; padding:10px 20px; font-size:13px;" onclick="document.getElementById('pdfFileInput').click();">
+      📂 Seleccionar archivo PDF o TXT
     </button>
-    
-    <div id="fileStatusMsg" style="margin-top:10px; font-size:13px; color:#334155;">Ningún archivo seleccionado.</div>
+    <div id="fileStatusMsg" style="margin-top:8px; font-size:12px; color:#475569;">
+      Sube el archivo PDF de tu test para formatearlo automáticamente.
+    </div>
   </div>
 
   <div class="config-grid">
-    <label>Modelo:
+    <label>Modelo del examen:
       <input type="text" id="cfgModelo" value="B" maxlength="2">
     </label>
-    <label>Pie de examen:
-      <input type="text" id="cfgTituloPie" value="EXAMEN POLICIA 43">
-    </label>
-    <label>Promoción:
-      <input type="text" id="cfgPromo" value="ESCALA BÁSICA (Promoción)">
-    </label>
-    <label>Fecha:
-      <input type="text" id="cfgFecha" value="CONVOCATORIA ACTUAL">
+    <label>Pie de página:
+      <input type="text" id="cfgPie" value="EXAMEN POLICIA 43">
     </label>
   </div>
 
-  <label style="font-size:12px; font-weight:bold;">Texto extraído (también puedes editarlo o pegarlo a mano):</label>
-  <textarea id="rawQuestionsInput"></textarea>
+  <label style="font-size:11px; font-weight:bold; color:#334155;">Texto detectado (puedes editarlo o pegar directamente aquí):</label>
+  <textarea id="rawInput"></textarea>
   
-  <div style="margin-top: 14px; text-align: right;">
+  <div style="margin-top: 12px; text-align: right;">
     <button class="btn btn-secondary" onclick="toggleModal(false)">Cerrar</button>
-    <button class="btn" onclick="processAndRender()">Generar Maquetación</button>
+    <button class="btn" onclick="processAndRender()">Aplicar Formato</button>
   </div>
 </div>
 
 <div id="pages-container"></div>
 
 <script>
-// Desactivar worker externo para compatibilidad directa
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 }
@@ -279,21 +270,21 @@ function toggleModal(show) {
   document.getElementById('editorModal').style.display = show ? 'block' : 'none';
 }
 
-// CONTROLADOR DE SUBIDA DE ARCHIVOS
+// LECTOR DIRECTO DE PDF SIN CORTES
 document.getElementById('pdfFileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
   const msg = document.getElementById('fileStatusMsg');
   if (!file) return;
 
   msg.style.color = '#0284c7';
-  msg.innerText = "Leyendo: " + file.name + "...";
+  msg.innerText = "Procesando archivo: " + file.name + "...";
 
   if (file.name.toLowerCase().endsWith('.txt')) {
     const reader = new FileReader();
     reader.onload = function(evt) {
-      document.getElementById('rawQuestionsInput').value = evt.target.result;
+      document.getElementById('rawInput').value = evt.target.result;
       msg.style.color = '#15803d';
-      msg.innerText = "Archivo TXT cargado. Pulsa 'Generar Maquetación'.";
+      msg.innerText = "Texto cargado con éxito. Pulsa 'Aplicar Formato'.";
     };
     reader.readAsText(file);
   } else if (file.name.toLowerCase().endsWith('.pdf')) {
@@ -302,21 +293,33 @@ document.getElementById('pdfFileInput').addEventListener('change', function(e) {
       try {
         const typedArray = new Uint8Array(evt.target.result);
         const pdf = await pdfjsLib.getDocument(typedArray).promise;
-        let extractedText = "";
+        let fullText = "";
 
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const textContent = await page.getTextContent();
-          const pageStr = textContent.items.map(item => item.str).join(" ");
-          extractedText += pageStr + "\n";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          
+          // Reconstrucción ordenada preservando saltos naturales
+          let lastY = null;
+          let pageText = "";
+          for (let item of content.items) {
+            if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+              pageText += "\n";
+            } else if (lastY !== null) {
+              pageText += " ";
+            }
+            pageText += item.str;
+            lastY = item.transform[5];
+          }
+          fullText += pageText + "\n";
         }
 
-        document.getElementById('rawQuestionsInput').value = extractedText;
+        document.getElementById('rawInput').value = fullText;
         msg.style.color = '#15803d';
-        msg.innerText = "Éxito: Se procesaron " + pdf.numPages + " páginas. Pulsa 'Generar Maquetación'.";
+        msg.innerText = `Éxito: extraídas ${pdf.numPages} páginas. Pulsa 'Aplicar Formato'.`;
       } catch (err) {
         msg.style.color = '#b91c1c';
-        msg.innerText = "No se pudo leer el PDF (puede estar escaneado o bloqueado). Copia y pega el texto directamente en el recuadro.";
+        msg.innerText = "Error al procesar el archivo. Si está bloqueado, copia y pega el texto en el recuadro.";
         console.error(err);
       }
     };
@@ -324,129 +327,86 @@ document.getElementById('pdfFileInput').addEventListener('change', function(e) {
   }
 });
 
-// PARSEADOR
+// PARSEADOR ROBUSTO DISEÑADO PARA TUS EXÁMENES
 function parseQuestions(rawText) {
-  const lines = rawText.replace(/\r/g, '').split('\n');
-  const questions = [];
-  let currentQ = null;
+  // Limpiar cabeceras típicas como "Simulacro de Examen"
+  let clean = rawText.replace(/Simulacro de Examen/gi, '');
+  
+  // Normalizar los saltos delante de números de preguntas y opciones
+  clean = clean.replace(/(\n|^)\s*(\d+)[\.\-\)]\s+/g, '\n###Q###$2. ');
+  clean = clean.replace(/(\n|^)\s*([a-cA-C])[\)\.\-]\s+/g, '\n###OPT###$2) ');
 
-  for (let line of lines) {
-    let trimmed = line.trim();
+  const blocks = clean.split('\n###Q###');
+  const questions = [];
+
+  for (let b of blocks) {
+    let trimmed = b.trim();
     if (!trimmed) continue;
 
-    // Reconocer preguntas "1.", "1)", "1.-"
-    const qMatch = trimmed.match(/^(\d+)[\.\-\)]\s*(.*)/);
-    if (qMatch) {
-      if (currentQ) questions.push(currentQ);
-      currentQ = { num: qMatch[1], title: qMatch[2], options: [] };
-      continue;
-    }
+    const optSplit = trimmed.split('\n###OPT###');
+    const qHeader = optSplit[0].trim();
+    
+    const qMatch = qHeader.match(/^(\d+)[\.\-\)]\s*([\s\S]*)/);
+    if (!qMatch) continue;
 
-    // Reconocer alternativas "a)", "a.-", "A)"
-    const optMatch = trimmed.match(/^([a-dA-D])[\)\.\-]\s*(.*)/);
-    if (optMatch && currentQ) {
-      currentQ.options.push({ letter: optMatch[1].toLowerCase(), text: optMatch[2] });
-      continue;
-    }
+    const qNum = qMatch[1];
+    // Eliminar saltos de línea internos dentro del enunciado de la pregunta
+    const qTitle = qMatch[2].replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
 
-    // Continuación de texto
-    if (currentQ) {
-      if (currentQ.options.length > 0) {
-        currentQ.options[currentQ.options.length - 1].text += ' ' + trimmed;
-      } else {
-        currentQ.title += ' ' + trimmed;
+    const options = [];
+    for (let i = 1; i < optSplit.length; i++) {
+      const optStr = optSplit[i].trim();
+      const optMatch = optStr.match(/^([a-cA-C])[\)\.\-]\s*([\s\S]*)/);
+      if (optMatch) {
+        const letter = optMatch[1].toLowerCase();
+        // Eliminar saltos de línea dentro de la opción para que no se corte
+        const text = optMatch[2].replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
+        options.push({ letter, text });
       }
     }
+
+    questions.push({
+      num: qNum,
+      title: qTitle,
+      options: options
+    });
   }
 
-  if (currentQ) questions.push(currentQ);
   return questions;
 }
 
-// RENDERIZADO
-function processAndRender() {
-  toggleModal(false);
-
+// RENDERIZADO DIRECTO EN PÁGINA 1 SIN PORTADA
+function renderExam(questions) {
   const container = document.getElementById('pages-container');
   container.innerHTML = '';
 
   const modelo = document.getElementById('cfgModelo').value.trim() || 'B';
-  const tituloPie = document.getElementById('cfgTituloPie').value.trim() || 'EXAMEN POLICIA 43';
-  const promo = document.getElementById('cfgPromo').value.trim();
-  const fecha = document.getElementById('cfgFecha').value.trim();
-  const rawText = document.getElementById('rawQuestionsInput').value;
+  const pie = document.getElementById('cfgPie').value.trim() || 'EXAMEN POLICIA 43';
 
-  const questions = parseQuestions(rawText);
-
-  if (questions.length === 0) {
-    container.innerHTML = '<div style="color:white; margin-top:40px;">No se encontraron preguntas. Comprueba que el formato tenga números en las preguntas (1., 2.) y letras en las opciones (a), b)...)</div>';
-    return;
-  }
-
-  // 1. Portada
-  const coverSheet = document.createElement('div');
-  coverSheet.className = 'sheet';
-  coverSheet.innerHTML = `
-    <div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-weight:900; font-size:16pt; letter-spacing:1px;">POLICÍA NACIONAL</div>
-        <div class="header-box">${modelo}</div>
-      </div>
-      <div class="cover-header">
-        <div class="cover-title">
-          DIRECCIÓN GENERAL DE LA POLICÍA<br>
-          DIVISIÓN DE FORMACIÓN Y PERFECCIONAMIENTO<br>
-          UNIDAD DE PROCESOS SELECTIVOS
-        </div>
-        <div class="cover-subtitle">${promo}<br>${fecha}</div>
-      </div>
-      <div class="cover-user-box">
-        <div>APELLIDOS Y NOMBRE:</div>
-        <div style="display:flex; justify-content:space-between;">
-          <span>D.N.I.:</span>
-          <span>CUESTIONARIO DE PREGUNTAS</span>
-        </div>
-      </div>
-      <div class="cover-instructions">
-        <h3>INSTRUCCIONES</h3>
-        <ul>
-          <li>La prueba consta de ${questions.length} preguntas[cite: 2]. Si observa anomalías, comuníquelo al Tribunal[cite: 2].</li>
-          <li>Cada pregunta solo tiene una respuesta correcta[cite: 2].</li>
-          <li>Solo está permitido bolígrafo azul o negro, tipo BIC[cite: 2].</li>
-          <li>Los errores penalizan conforme a la fórmula oficial: <strong>A - [E / (n - 1)] * 10 / P</strong>[cite: 2].</li>
-          <li>Dispone de CINCUENTA MINUTOS[cite: 2].</li>
-        </ul>
-        <div class="cover-notice">NO PASE LA PÁGINA HASTA QUE SE INDIQUE[cite: 2]</div>
-      </div>
-    </div>
-    <div class="page-footer">
-      <div>${tituloPie}</div>
-      <div class="footer-center">INSTRUCCIONES</div>
-      <div class="footer-right">PORTADA</div>
-    </div>
-  `;
-  container.appendChild(coverSheet);
-
-  // 2. Distribución de preguntas (7 por hoja)
-  const QUESTIONS_PER_PAGE = 7;
+  // Exactamente 7 preguntas por página para distribución A4 limpia
+  const Q_PER_PAGE = 7;
   let pageIndex = 1;
 
-  for (let i = 0; i < questions.length; i += QUESTIONS_PER_PAGE) {
-    const chunk = questions.slice(i, i + QUESTIONS_PER_PAGE);
-    const isLastPage = (i + QUESTIONS_PER_PAGE) >= questions.length;
+  for (let i = 0; i < questions.length; i += Q_PER_PAGE) {
+    const chunk = questions.slice(i, i + Q_PER_PAGE);
+    const isLast = (i + Q_PER_PAGE) >= questions.length;
     const pageSheet = document.createElement('div');
     pageSheet.className = 'sheet';
 
-    let questionsHtml = '';
+    let qHtml = '';
     chunk.forEach(q => {
-      let optionsHtml = '';
+      let optHtml = '';
       q.options.forEach(opt => {
-        optionsHtml += `<div class="option-line"><span class="opt-letter">${opt.letter})</span>${opt.text}</div>`;
+        optHtml += `
+          <div class="option-line">
+            <span class="opt-letter">${opt.letter})</span>${opt.text}
+          </div>
+        `;
       });
-      questionsHtml += `
+      qHtml += `
         <div class="question-block">
           <div class="question-title">${q.num}. ${q.title}</div>
-          <div class="options-group">${optionsHtml}</div>
+          <div class="options-group">${optHtml}</div>
         </div>
       `;
     });
@@ -457,11 +417,13 @@ function processAndRender() {
           <div class="header-left">DIRECCIÓN GENERAL DE LA POLICÍA</div>
           <div class="header-box">${modelo}</div>
         </div>
-        <div class="page-body">${questionsHtml}</div>
+        <div class="page-body">
+          ${qHtml}
+        </div>
       </div>
       <div class="page-footer">
-        <div>${tituloPie}</div>
-        <div class="footer-center">${isLastPage ? 'FIN DEL EJERCICIO' : 'PASE A PÁG. SIGUIENTE'}</div>
+        <div>${pie}</div>
+        <div class="footer-center">${isLast ? 'FIN DEL EJERCICIO' : 'PASE A PÁG. SIGUIENTE'}</div>
         <div class="footer-right">Pag. ${pageIndex}</div>
       </div>
     `;
@@ -470,22 +432,48 @@ function processAndRender() {
   }
 }
 
-// Carga inicial con texto demostrativo
+function processAndRender() {
+  toggleModal(false);
+  const rawText = document.getElementById('rawInput').value.trim();
+  if (rawText) {
+    const parsed = parseQuestions(rawText);
+    if (parsed.length > 0) {
+      renderExam(parsed);
+      return;
+    }
+  }
+}
+
+// CARGA INICIAL POR DEFECTO DEL TEST GLOBAL 1
 window.onload = function() {
-  document.getElementById('rawQuestionsInput').value = `1. Las distinción entre muchedumbre y auditorios fue realizada por:
-a) Kimball Young
-b) Munné
-c) Roger Brown
-
+  document.getElementById('rawInput').value = `1. Las distinción entre muchedumbre y auditorios fue realizada por:
+A) Kimball Young
+B) Munné
+C) Roger Brown
 2. En el ámbito de la prevención de Riesgos Laborales aquella incapacidad que, sin alcanzar el grado total, ocasiona al trabajador una disminución no inferior al 33% en su rendimiento normal para la profesión habitual, sin impedirle la realización de las tareas fundamentales de la misma es una incapacidad:
-a) Temporal
-b) Permanente total
-c) Permanente parcial
-
+A) Temporal
+B) Permanente total
+C) Permanente parcial
 3. Según el Real Decreto 704/2011 por el que se aprueba el Reglamento de protección de las infraestructuras críticas, el encargado de proponer a la Secretaría de Estado de Seguridad la declaración de una zona como crítica es:
-a) El Delegado de Gobierno a través del CNPIC
-b) La Comisión Nacional para la Protección de las Infraestructuras Críticas
-c) El Ministro del Interior a través del CNPIC`;
+A) El Delegado de Gobierno a través del CNPIC
+B) La Comisión Nacional para la Protección de las Infraestructuras Críticas
+C) El Ministro del Interior a través del CNPIC
+4. En atención a lo dispuesto en la Constitución Española de 1978, se prohíben:
+A) Ambas respuestas son correctas
+B) Los tribunales de honor en el ámbito de la Administración civil y militar
+C) Los tribunales de excepción
+5. Las armas que precisan de guía de pertenencia son las armas de las categorías:
+A) 1ª, 2ª, 3ª, 6ª, 7ª.1, 7ª.2, 7ª.3, 7ª.4, 7ª.5 y 8ª
+B) 1ª, 2ª, 3ª, 6ª, 7ª.1, 7ª.2, 7ª.3 y 8ª
+C) 1ª, 2ª, 3ª, 6ª, 7ª.1, 7ª.2, 7ª.3, 7ª.4 y 8ª
+6. La mezcla entre MDMA y LSD la conocemos con el nombre de:
+A) Speed ball
+B) Fire ball
+C) Candyflip
+7. Con arreglo a la Ley Orgánica 4/2015 de protección de la seguridad ciudadana, las infracciones graves pueden ser multadas con un valor en euros que oscila entre:
+A) 600 y 3.000
+B) 601 y 30.000
+C) 601 y 3.000`;
 
   processAndRender();
 };
