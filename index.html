@@ -192,7 +192,7 @@
   .footer-center { text-align: center; font-weight: 700; }
   .footer-right { text-align: right; }
 
-  /* REGLAS DE IMPRESIÓN LIMPIA */
+  /* REGLAS DE IMPRESIÓN CORREGIDAS (NO MÁS HOJAS EN BLANCO) */
   @page {
     size: A4 portrait;
     margin: 0;
@@ -204,16 +204,26 @@
       padding: 0 !important;
     }
     #toolbar, #editorModal { display: none !important; }
-    #pages-container { margin: 0 !important; padding: 0 !important; display: block !important; }
+    #pages-container { 
+      margin: 0 !important; 
+      padding: 0 !important; 
+      display: block !important; 
+      gap: 0 !important;
+    }
     .sheet {
       box-shadow: none !important;
       margin: 0 !important;
-      width: 100% !important;
-      height: 297mm !important;
-      max-height: 297mm !important;
+      width: 210mm !important;
+      height: 296.5mm !important; /* Ligeramente menor a 297mm para evitar que rebose a otra hoja */
+      max-height: 296.5mm !important;
       page-break-after: always !important;
       break-after: page !important;
       overflow: hidden !important;
+    }
+    /* Quitamos el salto de página a la última hoja para que no imprima una extra al final */
+    .sheet:last-child {
+      page-break-after: auto !important;
+      break-after: auto !important;
     }
   }
 </style>
@@ -299,7 +309,6 @@ document.getElementById('pdfFileInput').addEventListener('change', function(e) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
           
-          // Reconstrucción ordenada preservando saltos naturales
           let lastY = null;
           let pageText = "";
           for (let item of content.items) {
@@ -327,12 +336,10 @@ document.getElementById('pdfFileInput').addEventListener('change', function(e) {
   }
 });
 
-// PARSEADOR ROBUSTO DISEÑADO PARA TUS EXÁMENES
+// PARSEADOR ROBUSTO
 function parseQuestions(rawText) {
-  // Limpiar cabeceras típicas como "Simulacro de Examen"
   let clean = rawText.replace(/Simulacro de Examen/gi, '');
   
-  // Normalizar los saltos delante de números de preguntas y opciones
   clean = clean.replace(/(\n|^)\s*(\d+)[\.\-\)]\s+/g, '\n###Q###$2. ');
   clean = clean.replace(/(\n|^)\s*([a-cA-C])[\)\.\-]\s+/g, '\n###OPT###$2) ');
 
@@ -350,7 +357,6 @@ function parseQuestions(rawText) {
     if (!qMatch) continue;
 
     const qNum = qMatch[1];
-    // Eliminar saltos de línea internos dentro del enunciado de la pregunta
     const qTitle = qMatch[2].replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
 
     const options = [];
@@ -359,7 +365,6 @@ function parseQuestions(rawText) {
       const optMatch = optStr.match(/^([a-cA-C])[\)\.\-]\s*([\s\S]*)/);
       if (optMatch) {
         const letter = optMatch[1].toLowerCase();
-        // Eliminar saltos de línea dentro de la opción para que no se corte
         const text = optMatch[2].replace(/\r?\n+/g, ' ').replace(/\s+/g, ' ').trim();
         options.push({ letter, text });
       }
@@ -375,7 +380,7 @@ function parseQuestions(rawText) {
   return questions;
 }
 
-// RENDERIZADO DIRECTO EN PÁGINA 1 SIN PORTADA
+// RENDERIZADO (Sin portada)
 function renderExam(questions) {
   const container = document.getElementById('pages-container');
   container.innerHTML = '';
@@ -383,7 +388,6 @@ function renderExam(questions) {
   const modelo = document.getElementById('cfgModelo').value.trim() || 'B';
   const pie = document.getElementById('cfgPie').value.trim() || 'EXAMEN POLICIA 43';
 
-  // Exactamente 7 preguntas por página para distribución A4 limpia
   const Q_PER_PAGE = 7;
   let pageIndex = 1;
 
@@ -444,7 +448,6 @@ function processAndRender() {
   }
 }
 
-// CARGA INICIAL POR DEFECTO DEL TEST GLOBAL 1
 window.onload = function() {
   document.getElementById('rawInput').value = `1. Las distinción entre muchedumbre y auditorios fue realizada por:
 A) Kimball Young
