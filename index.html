@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maquetador de Exámenes - Policía Nacional</title>
+<title>Maquetador Oficial - Policía Nacional</title>
+<!-- Librería para leer archivos PDF directamente en el navegador -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
 <style>
-  /* --- REGLAS GENERALES Y PANTALLA --- */
   * {
     box-sizing: border-box;
     margin: 0;
@@ -17,74 +21,79 @@
     color: #000;
   }
 
-  /* Barra de herramientas superior */
+  /* BARRA SUPERIOR */
   #toolbar {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     height: 60px;
-    background: #1e293b;
+    background: #0f172a;
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding: 0 20px;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.4);
   }
   #toolbar h1 {
-    font-size: 16px;
-    letter-spacing: 0.5px;
+    font-size: 15px;
     font-weight: 700;
+    letter-spacing: 0.5px;
   }
   .btn {
     background: #2563eb;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 9px 16px;
     border-radius: 4px;
     font-weight: bold;
     cursor: pointer;
     font-size: 13px;
-    transition: background 0.2s;
     margin-left: 8px;
   }
   .btn:hover { background: #1d4ed8; }
   .btn-secondary { background: #475569; }
   .btn-secondary:hover { background: #334155; }
 
-  /* Modal de edición de texto */
+  /* MODAL DE SUBIDA / EDICIÓN */
   #editorModal {
     display: none;
     position: fixed;
     top: 70px;
     left: 50%;
     transform: translateX(-50%);
-    width: 90%;
-    max-width: 950px;
+    width: 95%;
+    max-width: 900px;
     background: white;
     border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
     z-index: 1100;
     max-height: 85vh;
     overflow-y: auto;
   }
-  #editorModal textarea {
-    width: 100%;
-    height: 380px;
-    font-family: monospace;
-    font-size: 12px;
-    padding: 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    margin-top: 8px;
-    resize: vertical;
+  .upload-zone {
+    border: 2px dashed #94a3b8;
+    background: #f8fafc;
+    border-radius: 6px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .upload-zone input {
+    display: none;
+  }
+  .upload-label {
+    cursor: pointer;
+    color: #2563eb;
+    font-weight: bold;
+    font-size: 14px;
   }
   .config-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
     margin-bottom: 12px;
   }
@@ -97,34 +106,42 @@
     gap: 4px;
   }
   .config-grid input {
-    padding: 6px;
+    padding: 7px;
     border: 1px solid #cbd5e1;
     border-radius: 4px;
   }
+  #rawQuestionsInput {
+    width: 100%;
+    height: 260px;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    margin-top: 6px;
+  }
 
-  /* --- ESTRUCTURA DE PÁGINAS A4 --- */
+  /* ESTRUCTURA VISUAL DE PÁGINAS */
   #pages-container {
     margin-top: 80px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
-    margin-bottom: 40px;
+    margin-bottom: 50px;
   }
   .sheet {
     width: 210mm;
     min-height: 297mm;
-    height: 297mm;
     background: white;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    padding: 16mm 20mm 16mm 20mm;
-    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.35);
+    padding: 16mm 20mm;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
 
-  /* Encabezado */
+  /* ENCABEZADOS Y ELEMENTOS */
   .page-header {
     display: flex;
     justify-content: space-between;
@@ -135,36 +152,31 @@
   }
   .header-left {
     font-size: 11px;
-    font-weight: 700;
+    font-weight: bold;
     letter-spacing: 0.5px;
-    text-transform: uppercase;
   }
   .header-box {
     border: 1.5px solid #000;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
   }
-
-  /* Contenido y Preguntas */
   .page-body {
     flex-grow: 1;
-    display: flex;
-    flex-direction: column;
   }
   .question-block {
-    margin-bottom: 12px;
+    margin-bottom: 11px;
     font-size: 9.5pt;
     line-height: 1.35;
     page-break-inside: avoid;
     break-inside: avoid;
   }
   .question-title {
-    font-weight: 700;
+    font-weight: bold;
     text-align: justify;
     margin-bottom: 3px;
   }
@@ -175,13 +187,12 @@
     text-align: justify;
     margin-bottom: 2px;
   }
-  .option-line .opt-letter {
-    font-weight: normal;
+  .opt-letter {
     display: inline-block;
     width: 18px;
   }
 
-  /* Pie de página */
+  /* PIE DE PÁGINA */
   .page-footer {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -190,36 +201,32 @@
     padding-top: 6px;
     font-size: 9pt;
     font-weight: bold;
-    text-transform: uppercase;
   }
   .footer-center {
     text-align: center;
-    font-weight: 700;
   }
   .footer-right {
     text-align: right;
   }
 
-  /* Portada oficial */
+  /* PORTADA */
   .cover-header {
     text-align: center;
-    margin-top: 15mm;
-    margin-bottom: 15mm;
+    margin: 15mm 0;
   }
   .cover-title {
-    font-size: 15pt;
+    font-size: 14pt;
     font-weight: 800;
     line-height: 1.4;
-    letter-spacing: 0.5px;
   }
   .cover-subtitle {
-    font-size: 13pt;
-    margin-top: 15px;
-    font-weight: 700;
+    font-size: 12pt;
+    margin-top: 14px;
+    font-weight: bold;
   }
   .cover-user-box {
     border: 1px solid #000;
-    margin: 25px 0;
+    margin: 22px 0;
     padding: 12px 16px;
     font-size: 10.5pt;
     font-weight: bold;
@@ -228,15 +235,13 @@
     gap: 15px;
   }
   .cover-instructions {
-    margin-top: 25px;
+    margin-top: 20px;
     font-size: 9.5pt;
     line-height: 1.45;
   }
   .cover-instructions h3 {
     text-align: center;
-    font-size: 11pt;
-    margin-bottom: 12px;
-    letter-spacing: 1px;
+    margin-bottom: 10px;
   }
   .cover-instructions ul {
     list-style-type: square;
@@ -249,81 +254,95 @@
     text-align: center;
     font-weight: bold;
     font-size: 11pt;
-    margin-top: 40px;
-    letter-spacing: 0.5px;
+    margin-top: 35px;
   }
 
-  /* REGLAS PARA IMPRESIÓN (PDF) */
+  /* REGLAS ESTRICTAS DE IMPRESIÓN (SOLUCIÓN HOJA EN BLANCO) */
   @page {
     size: A4 portrait;
     margin: 0;
   }
   @media print {
-    body {
-      background: none;
+    html, body {
+      background: #fff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: auto !important;
     }
     #toolbar, #editorModal {
       display: none !important;
     }
     #pages-container {
-      margin: 0;
-      gap: 0;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: block !important;
     }
     .sheet {
-      box-shadow: none;
-      page-break-after: always;
-      break-after: page;
-      height: 297mm;
-      max-height: 297mm;
-      overflow: hidden;
+      box-shadow: none !important;
+      margin: 0 !important;
+      width: 100% !important;
+      height: 297mm !important;
+      max-height: 297mm !important;
+      page-break-after: always !important;
+      break-after: page !important;
+      overflow: hidden !important;
     }
   }
 </style>
 </head>
 <body>
 
-<!-- BARRA DE ACCIONES -->
 <div id="toolbar">
-  <h1>PLANTILLA DE EXAMEN POLICÍA NACIONAL</h1>
+  <h1>GENERADOR DE TEST POLICÍA NACIONAL</h1>
   <div>
-    <button class="btn btn-secondary" onclick="toggleModal(true)">Modificar / Cargar otro test</button>
+    <button class="btn btn-secondary" onclick="toggleModal(true)">Subir / Modificar Test</button>
     <button class="btn" onclick="window.print()">Imprimir / Guardar en PDF</button>
   </div>
 </div>
 
-<!-- VENTANA MODAL PARA EDITAR / PEGAR OTRO EXAMEN -->
 <div id="editorModal">
-  <h2 style="font-size:16px; margin-bottom:12px;">Configurar Examen</h2>
+  <h2 style="font-size:16px; margin-bottom:12px;">Cargar Nuevo Examen</h2>
+
+  <!-- ZONA DE CARGA DE ARCHIVO (PDF O TXT) -->
+  <div class="upload-zone">
+    <label class="upload-label">
+      📁 Haz clic aquí para subir un archivo (PDF o TXT)
+      <input type="file" id="fileUploader" accept=".pdf,.txt" onchange="handleFileUpload(event)">
+    </label>
+    <div id="uploadStatus" style="font-size:12px; color:#64748b; margin-top:6px;">
+      Puedes subir tu examen en PDF o en archivo de texto plano
+    </div>
+  </div>
+
   <div class="config-grid">
-    <label>Modelo del examen:
+    <label>Modelo:
       <input type="text" id="cfgModelo" value="B" maxlength="2">
     </label>
-    <label>Pie de examen (Ej. EXAMEN POLICIA 43):
+    <label>Pie de examen:
       <input type="text" id="cfgTituloPie" value="SIMULACRO GLOBAL 1">
     </label>
-    <label>Convocatoria / Promoción (Portada):
+    <label>Promoción:
       <input type="text" id="cfgPromo" value="ESCALA BÁSICA (Promoción)">
     </label>
-    <label>Fecha del examen:
+    <label>Fecha:
       <input type="text" id="cfgFecha" value="CONVOCATORIA ACTUAL">
     </label>
   </div>
 
-  <label style="font-size:12px; font-weight:bold;">Pega aquí el contenido de las preguntas:</label>
+  <label style="font-size:12px; font-weight:bold;">Texto procesado (puedes editarlo o pegar directamente aquí):</label>
   <textarea id="rawQuestionsInput"></textarea>
   
   <div style="margin-top: 14px; text-align: right;">
-    <button class="btn btn-secondary" onclick="toggleModal(false)">Cancelar</button>
+    <button class="btn btn-secondary" onclick="toggleModal(false)">Cerrar</button>
     <button class="btn" onclick="processAndRender()">Generar Maquetación</button>
   </div>
 </div>
 
-<!-- CONTENEDOR DONDE SE MONTAN LAS PÁGINAS A4 -->
 <div id="pages-container"></div>
 
 <script>
-// PREGUNTAS POR DEFECTO EXTRAÍDAS DE TU ARCHIVO "Global 1.pdf"
-const DEFAULT_TEXT = `1. Las distinción entre muchedumbre y auditorios fue realizada por:
+// TEXTO BASE INICIAL
+let currentQuestionsText = `1. Las distinción entre muchedumbre y auditorios fue realizada por:
 a) Kimball Young
 b) Munné
 c) Roger Brown
@@ -336,288 +355,71 @@ c) Permanente parcial
 3. Según el Real Decreto 704/2011 por el que se aprueba el Reglamento de protección de las infraestructuras críticas, el encargado de proponer a la Secretaría de Estado de Seguridad la declaración de una zona como crítica es:
 a) El Delegado de Gobierno a través del CNPIC
 b) La Comisión Nacional para la Protección de las Infraestructuras Críticas
-c) El Ministro del Interior a través del CNPIC
+c) El Ministro del Interior a través del CNPIC`;
 
-4. En atención a lo dispuesto en la Constitución Española de 1978, se prohíben:
-a) Ambas respuestas son correctas
-b) Los tribunales de honor en el ámbito de la Administración civil y militar
-c) Los tribunales de excepción
+document.getElementById('rawQuestionsInput').value = currentQuestionsText;
 
-5. Las armas que precisan de guía de pertenencia son las armas de las categorías:
-a) 1ª, 2ª, 3ª, 6ª, 7ª.1, 7ª.2, 7ª.3, 7ª.4, 7ª.5 y 8ª
-b) 1ª, 2ª, 3ª, 6ª, 7ª.1, 7ª.2, 7ª.3 y 8ª
-c) 1ª, 2ª, 3ª, 6ª, 7ª.1, 7ª.2, 7ª.3, 7ª.4 y 8ª
+function toggleModal(show) {
+  document.getElementById('editorModal').style.display = show ? 'block' : 'none';
+}
 
-6. La mezcla entre MDMA y LSD la conocemos con el nombre de:
-a) Speed ball
-b) Fire ball
-c) Candyflip
+// LECTOR DE ARCHIVOS (.PDF Y .TXT)
+async function handleFileUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
-7. Con arreglo a la Ley Orgánica 4/2015 de protección de la seguridad ciudadana, las infracciones graves pueden ser multadas con un valor en euros que oscila entre:
-a) 600 y 3.000
-b) 601 y 30.000
-c) 601 y 3.000
+  const status = document.getElementById('uploadStatus');
+  status.innerText = `Cargando archivo: ${file.name}...`;
 
-8. La pertenencia a una organización o grupo criminal determina:
-a) Ambas respuestas son correctas
-b) La agravación de la pena, en los delitos de homicidio
-c) La cualificación del delito de homicidio en asesinato
+  if (file.name.endsWith('.txt')) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('rawQuestionsInput').value = e.target.result;
+      status.innerText = `Archivo de texto cargado correctamente.`;
+    };
+    reader.readAsText(file);
+  } else if (file.name.endsWith('.pdf')) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
 
-9. Atendiendo a lo dispuesto en el art. 234 del Código Penal, para que de la comisión de un delito de hurto no resulte de aplicación una pena de prisión, el importe de lo sustraído no debe de exceder, sin perjuicio de lo dispuesto en relación al art. 235, ni a la multirreincidencia, de:
-a) 800 euros
-b) 400 euros
-c) 600 euros
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n';
+      }
 
-10. Con arreglo al Código Civil si al nacer el hijo los padres no tienen la misma vecindad, no hay mutuo acuerdo en cuanto a la vecindad de alguno de ellos, la filiación del hijo se produce respecto de ambos en el mismo momento, la vecindad del hijo será:
-a) La del lugar de nacimiento
-b) La determinada por los poderes públicos en el momento del nacimiento
-c) La del derecho común
+      document.getElementById('rawQuestionsInput').value = fullText;
+      status.innerText = `PDF extraído con éxito (${pdf.numPages} páginas). Revisa el texto y pulsa "Generar Maquetación".`;
+    } catch (err) {
+      status.innerText = `Error al leer el PDF. Asegúrate de que no esté protegido.`;
+      console.error(err);
+    }
+  }
+}
 
-11. La mayor cantidad de THC la encontramos en:
-a) La grifa
-b) El aceite
-c) La ganja
+// PARSEADOR
+function parseQuestions(rawText) {
+  // Limpieza inicial
+  const clean = rawText.replace(/\r/g, '');
+  const lines = clean.split('\n');
+  const questions = [];
+  let currentQ = null;
 
-12. Según la Ley Orgánica 2/1979 del Tribunal Constitucional, podrá interponer un recurso de amparo:
-a) El Presidente del Gobierno, el Defensor del Pueblo, 50 diputados, 50 senadores y las asambleas de las comunidades autónomas
-b) Únicamente cualquiera de las partes personadas en el procedimiento judicial ordinario y previo
-c) La persona titular de un interés legítimo, el Defensor del Pueblo y el Ministerio Fiscal
+  for (let line of lines) {
+    let trimmed = line.trim();
+    if (!trimmed) continue;
 
-13. Según la Constitución Española la alta representación del Estado español en las relaciones internacionales es asumida por:
-a) El Presidente del Gobierno
-b) El Ministro de Asuntos Exteriores, UE y Cooperación
-c) El Rey
-
-14. Según la Ley 40/2015 del Régimen Jurídico del Sector Público, las unidades que no tengan la consideración de órganos se crean, modifican y suprimen:
-a) A través de las relaciones de puestos de trabajo
-b) Por Real Decreto del Consejo de Ministros
-c) Por Real Decreto del Ministerio para la Transformación Digital y de la Función Pública
-
-15. La proporcionalidad de las penas es consecuencia del principio de:
-a) Intervención mínima
-b) Legalidad
-c) Culpabilidad
-
-16. Según la Ley Orgánica 9/2015 de Régimen de Personal de la Policía Nacional, las organizaciones sindicales representativas tendrán derecho a que se les facilite un local adecuado para el ejercicio de sus actividades:
-a) En las dependencias con más de doscientos cincuenta funcionarios
-b) En las dependencias con más de ciento cincuenta funcionarios
-c) En las dependencias con más de doscientos funcionarios
-
-17. Con carácter general el Documento Nacional de Identidad tendrá un período de validez de:
-a) Dos años cuando la persona titular no haya cumplido los cinco años de edad
-b) Nueve años, cuando la persona titular haya cumplido los cinco años de edad y no haya alcanzado los treinta y cinco al momento de la expedición o renovación
-c) Más de diez años cuando la persona titular haya cumplido los sesenta años, consignando una fecha
-
-18. En virtud de la Ley Orgánica 9/2015 de Régimen de Personal de la Policía Nacional, con relación a la segunda actividad, señale la correcta:
-a) Los funcionarios titulares de las plazas de facultativos y de técnicos podrán pasar a la situación de segunda actividad en las mismas condiciones que los policías
-b) Tiene por objeto garantizar una adecuada aptitud psicofísica de los Policías Nacionales para el desempeño de las funciones propias de su puesto de trabajo que garantice su eficacia en el servicio
-c) Durante el tiempo que permanezcan en la situación de segunda actividad quedarán a disposición del Director General de la Policía para el cumplimiento de funciones policiales hasta alcanzar la edad de jubilación, cuando razones excepcionales de seguridad ciudadana lo requieran en los términos que reglamentariamente se determinen
-
-19. Según el Reglamento de Armas, el competente para expedir la licencia tipo B será:
-a) El Jefe de la Comandancia de la Guardia Civil de la provincia donde resida el solicitante
-b) La Dirección General de la Guardia Civil
-c) El Jefe de la Intervención de Armas y Explosivos
-
-20. La versión de MacOS X 10 beta se le denominó:
-a) Jaguar
-b) Kodiak
-c) Puma
-
-21. De acuerdo a las señales realizadas por los agentes, la señal que se realiza extendiendo el brazo horizontalmente significa:
-a) Obliga a detenerse a todos los usuarios de la vía que se aproximen al agente
-b) Obliga a detenerse a todos los usuarios de la vía que se aproximen al agente desde direcciones que corten la indicada por el brazo
-c) Obliga a detenerse a todos los usuarios de la vía que se aproximen al agente, excepto si no se puede hacer con seguridad
-
-22. Según la Orden INT/859/2023, en las Comisarías Provinciales en las que no exista Unidad de Coordinación Operativa Provincial, el titular de aquélla será sustituido en los casos de vacante, ausencia o enfermedad, a falta de designación expresa:
-a) Por el Jefe de la Unidad Territorial Operativa de mayor categoría, y en caso de igualdad en la categoría, por el titular de la Unidad de Coordinación Operativa
-b) Por el Jefe de la Unidad Territorial Operativa de mayor categoría, y en caso de igualdad en la categoría, por el titular de aquella Unidad Territorial que figure primero en el orden en que estén relacionadas en el Catálogo de Puestos de Trabajo
-c) Por el Jefe de la Unidad Territorial Operativa de mayor categoría, y en caso de igualdad en la categoría, por el titular de la Unidad Territorial de Seguridad Ciudadana
-
-23. En el supuesto en el que en una persona concurre el ánimo de lesionar a otra, pero no de matar, y en la ejecución de la acción lesiva provoca la muerte de la víctima, nos encontramos ante un caso de:
-a) Aberratio ictus
-b) Error en el golpe
-c) Homicidio preterintencional
-
-24. En caso de ausencia personal del Presidente del Tribunal Supremo y del Consejo General del Poder Judicial, ostentará la presidencia de la Comisión Nacional de Coordinación de la Policía Judicial:
-a) El miembro de la Comisión a quien corresponda por razón de precedencia
-b) Un Magistrado de la Sala Segunda del Tribunal Supremo
-c) El Fiscal General del Estado
-
-25. Alberto sale de su casa, con la mala fortuna de que al ir a guardarse las llaves en el bolsillo trasero de su pantalón estas se deslizan y caen en la alfombrilla de la entrada, silenciando el sonido de la caída e ignorando Alberto el descuido. A los diez minutos Alfonso, su vecino, las ve, y las utiliza para acceder a su casa y sustraerle varios efectos. Alfonso comete un delito de:
-a) Hurto
-b) Robo con fuerza
-c) Apropiación indebida
-
-26. Según la Ley Orgánica 4/2000, de 11 de enero, sobre derechos y libertades de los extranjeros en España y su integración social, el incumplimiento de las medidas impuestas por razón de seguridad pública, de presentación periódica o de alejamiento de fronteras o núcleos de población concretados singularmente, de acuerdo con lo dispuesto en la presente Ley, será una infracción de carácter:
-a) Grave
-b) Leve
-c) Muy grave
-
-27. Conforme con la Ley 12/2009 reguladora del derecho de asilo y de la protección subsidiaria, en el procedimiento ordinario, ¿qué plazo debe de transcurrir para que la solicitud sea desestimada?:
-a) Tres meses desde la presentación de la solicitud sin que se haya notificado la correspondiente resolución
-b) Un mes desde la presentación de la solicitud sin que se haya notificado la correspondiente resolución
-c) Seis meses desde la presentación de la solicitud sin que se haya notificado la correspondiente resolución
-
-28. Con arreglo a la Ley Orgánica 2/1986 de Fuerzas y Cuerpos de Seguridad, la creación, modificación y supresión de un cuerpo de policía de una Comunidad Autónoma requiere el informe del:
-a) Consejo de Gobierno de la Comunidad Autónoma
-b) Consejo de Política de Seguridad
-c) Consejo de Gobierno de la Comunidad Autónoma previamente reflejado en los Estatutos de Autonomía
-
-29. En virtud del Real Decreto 1155/2024 por el que se aprueba el Reglamento de la Ley Orgánica 4/2000, será de aplicación el procedimiento preferente por la comisión de:
-a) La infracción recogida en el artículo 54.1 c de la LOEX
-b) La infracción recogida en el artículo 53.1 f de la LOEX
-c) La infracción recogida en el artículo 53.1 b de la LOEX
-
-30. Con relación a la Ley 39/2006 de Promoción de la Autonomía Personal y Atención a las personas en situación de dependencia, las sanciones impuestas por faltas:
-a) Muy graves prescribirán a los cinco años, por faltas graves a los cuatro años y por faltas leves a los seis meses
-b) Muy graves prescribirán a los cuatro años, por faltas graves a los tres años y por faltas leves al año
-c) Muy graves prescribirán a los cinco años, por faltas graves a los cuatro años y por faltas leves al año
-
-31. Señale la proposición correcta según el Real Decreto 1087/2010, las Juntas Locales de Seguridad:
-a) Las Juntas Locales de Seguridad podrán constituirse en aquellos municipios o agrupaciones de municipios que tengan Cuerpo de Policía propio
-b) Las Juntas Locales de Seguridad son órganos colegiados para facilitar la cooperación y la coordinación, en el ámbito territorial del municipio, de las Administraciones Públicas en materia de seguridad
-c) Ambas son correctas
-
-32. Conforme con el Real Decreto 137/1993 por el que se aprueba el Reglamento de Armas, las armas blancas y en general las de hoja cortante o punzante no prohibidas, pertenecen a la categoría:
-a) 5ª.2
-b) 5ª.1
-c) 6ª.1
-
-33. Según lo establecido en el art. 10 del Real Decreto 207/2024 por el que se desarrolla la estructura orgánica básica del Ministerio del Interior, el encargado de coordinar las relaciones del departamento con el Defensor del Pueblo será:
-a) La Dirección General de Política Interior
-b) La secretaría de Estado de Seguridad a través de la Dirección General de Coordinación y Estudios
-c) La Secretaría General Técnica
-
-34. Un extranjero que pretende venir a España a cursar estudios universitarios por un periodo superior a 90 días debe estar en posesión de un visado de tipo:
-a) C
-b) D
-c) E
-
-35. Según la clasificación de los delitos informáticos realizada por el Convenio de Budapest, el abuso de un dispositivo queda incardinado en:
-a) Delitos informáticos
-b) Delitos relacionados con infracciones de la propiedad intelectual
-c) Delitos contra la confidencialidad, la integridad y la disponibilidad de los datos y sistemas informáticos
-
-36. El delito de atentado contra la autoridad se castiga con la pena superior en grado, en atención a lo establecido en el art. 551 del Código Penal:
-a) Cuando se porten objetos contundentes
-b) Cuando no se haga uso de armas u otros objetos peligrosos
-c) En el caso de que se acometa a un agente de la autoridad o funcionario público haciendo uso de un vehículo a motor
-
-37. Según la Ley 5/2014 de Seguridad Privada, se entiende por actividades de seguridad privada:
-a) Las facultades atribuidas al personal de seguridad privada
-b) Los ámbitos de actuación material en que los prestadores de servicios de seguridad privada llevan a cabo su acción empresarial y profesional
-c) Las acciones llevadas a cabo por los prestadores de servicios de seguridad privada para materializar las actividades de seguridad privada
-
-38. ¿Cuál de las siguientes frases está escrita correctamente?:
-a) Estubo callejeando por hangostos pasajes
-b) Sorvía lentamente su té mientras leía la noticia de la absolución de su visnieto
-c) Le reconvinieron por su carácter extremadamente huraño
-
-39. El organismo que promueve la estabilidad financiera, alentando a los países a adoptar medidas de política económica bien fundadas y la cooperación monetaria internacional, es:
-a) La Organización Mundial de Comercio
-b) El Banco Mundial
-c) El Fondo Monetario Internacional
-
-40. El derecho de asistencia y apoyo contemplado para las víctimas de los delitos se podrá extender a los familiares de estas cuando se trate de delitos que hayan causado:
-a) Perjuicios de especial gravedad
-b) Lesiones graves
-c) Daños de difícil reparación
-
-41. Uno de los ocho objetivos de la Cumbre del Milenio fue:
-a) Garantizar la sostenibilidad del medio ambiente
-b) Lograr la enseñanza secundaria universal
-c) Hambre cero
-
-42. El art. 27 de la Declaración Universal de Derechos Humanos reconoce que:
-a) Toda persona tiene derecho a la educación. La educación debe ser gratuita, al menos en lo concerniente a la instrucción elemental y fundamental...
-b) Toda persona tiene derecho a tomar parte libremente en la vida cultural de la comunidad, a gozar de las artes y a participar en el progreso científico y en los beneficios que de él resulten
-c) Toda persona tiene derecho a que se establezca un orden social e internacional en el que los derechos y libertades proclamados en esta Declaración se hagan plenamente efectivos
-
-43. El Foro Social Mundial del año 2012 fue celebrado en:
-a) Dakar
-b) Porto Alegre
-c) Túnez
-
-44. Según dispone la Ley 40/2015 de Régimen Jurídico del Sector Público, ¿qué rango tienen los Delegados del Gobierno?:
-a) Subsecretarios
-b) Secretarios Generales
-c) Directores Generales
-
-45. Según la legislación de extranjería, todos los extranjeros a los que se haya expedido un visado o una autorización para permanecer en España por un período superior a seis meses obtendrán la tarjeta de identidad de extranjero, que deberán solicitar personalmente en el plazo de:
-a) Tres meses desde su entrada en España o desde que se conceda la autorización, respectivamente
-b) Un mes desde su entrada en España o desde que se conceda la autorización
-c) Un mes desde su entrada en España o de tres meses desde que se conceda la autorización
-
-46. El autor de "Las migraciones de los pueblos" fue:
-a) Max Sorre
-b) Park
-c) Simmel
-
-47. Depende orgánicamente del Centro de Inteligencia contra el Terrorismo y el Crimen Organizado:
-a) Ambas son correctas
-b) La ONIP
-c) CEPOL
-
-48. Los encargados de asegurar la fijación de la rueda a la llanta son:
-a) Los trapecios
-b) Los talones
-c) Los flancos
-
-49. Según la Ley Orgánica 4/2010 del Régimen disciplinario del Cuerpo Nacional de Policía, no prestar servicio alegando supuesta enfermedad es una infracción disciplinaria de carácter:
-a) Leve
-b) Grave
-c) Muy grave
-
-50. La teoría de la identificación diferencial fue obra de:
-a) Glaser
-b) Cohen
-c) Cloward
-
-51. La ciberdelincuencia cuyo objetivo es perturbar la paz social y el orden público se conoce como:
-a) Cibersabotaje
-b) Ciberdelincuencia intrusiva
-c) Cibercriminalidad social
-
-52. El autor que diferenció los grupos en primarios y secundarios fue:
-a) Merton
-b) Mayo
-c) Cooley
-
-53. En el ámbito de las infraestructuras críticas los documentos operativos para cada infraestructura crítica donde se definen las medidas concretas ya adoptadas son:
-a) Los planes de protección específicos
-b) Los planes de seguridad del operador
-c) Los planes de apoyo operativos
-
-54. Según lo dispuesto en el Código Civil, los nacidos en España de padres extranjeros, si ambos carecen de nacionalidad o si la legislación de ninguno de ellos atribuye al hijo una nacionalidad son:
-a) Españoles de origen
-b) Apátridas
-c) Españoles por opción
-
-55. ¿El uso de las mayúsculas en los tratamientos es correcto?:
-a) Sí, tanto en su forma abreviada como su forma extensa. Ej.: Dra. María, Doctora María.
-b) No, siempre se debe escribir en minúscula. dra. María, doctora María.
-c) Solo cuando estos se emplean en su forma abreviada. Ej.: Dra. María.
-
-56. El organismo internacional creado para el encuentro de los principales líderes políticos, empresariales, académicos e intelectuales del ámbito político y empresarial, que se reúne anualmente, en Davos, se denomina:
-a) Organización para la Cooperación y el Desarrollo Económico
-b) Fondo Monetario Internacional
-c) Foro Económico Mundial o Foro de Davos
-
-57. La persona que consideraba que existía una cultura global denominada McWorld era:
-a) Kenichi Ohmae
-b) Michael Porter
-c) Benjamin Barber
-
-58. El mandato del Presidente de la Comisión Europea es de:
-a) Cinco años no renovables
-b) Cinco años renovables por una sola vez
-c) Cinco años
-
-59. El mandato del Fiscal General del Estado tendrá una duración de:
-a) Cuatro años
-b) Seis años
-c) Cinco años
-
-60. El sistema de seguridad activa denominado Control de Tracción (TCS) tiene como misión:
-a) Recuperar el control del vehículo ante la pérdida del mismo por subvirajes o sobrevirajes
-b) Actuar cuando la dirección del vehículo no se corresponde con la deseada por el
+    // Detectar inicio de pregunta: "1." o "1.-" o "1)"
+    const qMatch = trimmed.match(/^(\d+)[\.\-\)]\s*(.*)/);
+    if (qMatch) {
+      if (currentQ) questions.push(currentQ);
+      currentQ = {
+        num: qMatch[1],
+        title: qMatch[2],
+        options: []
+      };
+      continue;
+    }
