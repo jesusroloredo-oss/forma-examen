@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Maquetador Oficial - Policía Nacional</title>
-<!-- Librería PDF.js sin worker externo para evitar bloqueos -->
+<title>Examen Oficial - Policía Nacional</title>
+
+<!-- Librería PDF.js oficial -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -14,7 +16,7 @@
     color: #000;
   }
 
-  /* BARRA SUPERIOR */
+  /* BARRA DE HERRAMIENTAS */
   #toolbar {
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -44,7 +46,7 @@
   .btn-secondary { background: #475569; }
   .btn-secondary:hover { background: #334155; }
 
-  /* MODAL */
+  /* VENTANA MODAL DE CONFIGURACIÓN */
   #editorModal {
     display: none;
     position: fixed;
@@ -61,18 +63,13 @@
     max-height: 85vh;
     overflow-y: auto;
   }
-  .upload-box {
-    border: 2px dashed #0284c7;
+  .upload-container {
     background: #f0f9ff;
+    border: 2px dashed #0284c7;
+    border-radius: 8px;
     padding: 20px;
     text-align: center;
-    border-radius: 8px;
-    margin-bottom: 15px;
-  }
-  .upload-box input[type="file"] {
-    display: block;
-    margin: 10px auto;
-    font-size: 14px;
+    margin-bottom: 16px;
   }
   .config-grid {
     display: grid;
@@ -123,6 +120,8 @@
     flex-direction: column;
     justify-content: space-between;
   }
+
+  /* ENCABEZADOS */
   .page-header {
     display: flex;
     justify-content: space-between;
@@ -143,6 +142,8 @@
     font-weight: 800;
   }
   .page-body { flex-grow: 1; }
+
+  /* PREGUNTAS */
   .question-block {
     margin-bottom: 11px;
     font-size: 9.5pt;
@@ -155,6 +156,7 @@
   .option-line { text-align: justify; margin-bottom: 2px; }
   .opt-letter { display: inline-block; width: 18px; }
 
+  /* PIE DE PÁGINA */
   .page-footer {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
@@ -192,7 +194,7 @@
   }
   .cover-notice { text-align: center; font-weight: bold; font-size: 11pt; margin-top: 35px; }
 
-  /* IMPRESIÓN */
+  /* FORMATO DE IMPRESIÓN */
   @page { size: A4 portrait; margin: 0; }
   @media print {
     html, body {
@@ -219,22 +221,26 @@
 <body>
 
 <div id="toolbar">
-  <h1>GENERADOR DE TEST POLICÍA NACIONAL</h1>
+  <h1>DIVISIÓN DE FORMACIÓN - POLICÍA NACIONAL</h1>
   <div>
-    <button class="btn btn-secondary" onclick="toggleModal(true)">Subir / Modificar Test</button>
+    <button class="btn btn-secondary" onclick="toggleModal(true)">Subir / Cargar Test</button>
     <button class="btn" onclick="window.print()">Imprimir / Guardar en PDF</button>
   </div>
 </div>
 
 <div id="editorModal">
-  <h2 style="font-size:16px; margin-bottom:12px;">Cargar Nuevo Examen</h2>
+  <h2 style="font-size:16px; margin-bottom:12px;">Cargar Examen</h2>
 
-  <div class="upload-box">
-    <strong>Selecciona el archivo de tu examen:</strong>
-    <input type="file" id="fileUploader" accept=".pdf,.txt">
-    <div id="uploadStatus" style="font-size:13px; font-weight:bold; color:#0369a1; margin-top:5px;">
-      Selecciona tu archivo PDF o TXT para extraer el contenido automáticamente.
-    </div>
+  <!-- SECCIÓN DE CARGA CON ACCIÓN DIRECTA -->
+  <div class="upload-container">
+    <p style="font-weight:bold; color:#0369a1; margin-bottom:8px;">Subir archivo desde el dispositivo (.pdf o .txt):</p>
+    
+    <input type="file" id="pdfFileInput" accept=".pdf,.txt" style="display:none;">
+    <button type="button" class="btn" style="background:#0284c7; padding:10px 22px; font-size:14px;" onclick="document.getElementById('pdfFileInput').click();">
+      📂 Buscar archivo en el equipo
+    </button>
+    
+    <div id="fileStatusMsg" style="margin-top:10px; font-size:13px; color:#334155;">Ningún archivo seleccionado.</div>
   </div>
 
   <div class="config-grid">
@@ -242,7 +248,7 @@
       <input type="text" id="cfgModelo" value="B" maxlength="2">
     </label>
     <label>Pie de examen:
-      <input type="text" id="cfgTituloPie" value="SIMULACRO GLOBAL 1">
+      <input type="text" id="cfgTituloPie" value="EXAMEN POLICIA 43">
     </label>
     <label>Promoción:
       <input type="text" id="cfgPromo" value="ESCALA BÁSICA (Promoción)">
@@ -252,7 +258,7 @@
     </label>
   </div>
 
-  <label style="font-size:12px; font-weight:bold;">Texto extraído (puedes revisarlo o editarlo):</label>
+  <label style="font-size:12px; font-weight:bold;">Texto extraído (también puedes editarlo o pegarlo a mano):</label>
   <textarea id="rawQuestionsInput"></textarea>
   
   <div style="margin-top: 14px; text-align: right;">
@@ -264,7 +270,7 @@
 <div id="pages-container"></div>
 
 <script>
-// Desactivar worker externo para evitar bloqueos del navegador en GitHub Pages
+// Desactivar worker externo para compatibilidad directa
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = '';
 }
@@ -273,60 +279,52 @@ function toggleModal(show) {
   document.getElementById('editorModal').style.display = show ? 'block' : 'none';
 }
 
-// EVENTO DE CARGA DE ARCHIVO DIRECTO
-document.getElementById('fileUploader').addEventListener('change', async function(e) {
+// CONTROLADOR DE SUBIDA DE ARCHIVOS
+document.getElementById('pdfFileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
+  const msg = document.getElementById('fileStatusMsg');
   if (!file) return;
 
-  const status = document.getElementById('uploadStatus');
-  status.style.color = '#0284c7';
-  status.innerText = `Leyendo "${file.name}"...`;
+  msg.style.color = '#0284c7';
+  msg.innerText = "Leyendo: " + file.name + "...";
 
   if (file.name.toLowerCase().endsWith('.txt')) {
     const reader = new FileReader();
     reader.onload = function(evt) {
       document.getElementById('rawQuestionsInput').value = evt.target.result;
-      status.style.color = '#15803d';
-      status.innerText = 'Texto cargado correctamente. Pulsa "Generar Maquetación".';
+      msg.style.color = '#15803d';
+      msg.innerText = "Archivo TXT cargado. Pulsa 'Generar Maquetación'.";
     };
     reader.readAsText(file);
   } else if (file.name.toLowerCase().endsWith('.pdf')) {
-    try {
-      const reader = new FileReader();
-      reader.onload = async function(evt) {
-        try {
-          const typedArray = new Uint8Array(evt.target.result);
-          const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
-          let textBuilder = '';
+    const reader = new FileReader();
+    reader.onload = async function(evt) {
+      try {
+        const typedArray = new Uint8Array(evt.target.result);
+        const pdf = await pdfjsLib.getDocument(typedArray).promise;
+        let extractedText = "";
 
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            
-            // Reconstruir líneas ordenadas
-            const pageLines = textContent.items.map(item => item.str).join(' ');
-            textBuilder += pageLines + '\n';
-          }
-
-          document.getElementById('rawQuestionsInput').value = textBuilder;
-          status.style.color = '#15803d';
-          status.innerText = `Éxito: Se han extraído ${pdf.numPages} páginas. Pulsa "Generar Maquetación".`;
-        } catch (innerErr) {
-          status.style.color = '#b91c1c';
-          status.innerText = 'El PDF parece estar escaneado como imagen o protegido. Copia y pega el texto directamente en el cuadro.';
-          console.error(innerErr);
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+          const pageStr = textContent.items.map(item => item.str).join(" ");
+          extractedText += pageStr + "\n";
         }
-      };
-      reader.readAsArrayBuffer(file);
-    } catch (err) {
-      status.style.color = '#b91c1c';
-      status.innerText = 'Error al procesar el archivo.';
-      console.error(err);
-    }
+
+        document.getElementById('rawQuestionsInput').value = extractedText;
+        msg.style.color = '#15803d';
+        msg.innerText = "Éxito: Se procesaron " + pdf.numPages + " páginas. Pulsa 'Generar Maquetación'.";
+      } catch (err) {
+        msg.style.color = '#b91c1c';
+        msg.innerText = "No se pudo leer el PDF (puede estar escaneado o bloqueado). Copia y pega el texto directamente en el recuadro.";
+        console.error(err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   }
 });
 
-// PARSEADOR DE PREGUNTAS
+// PARSEADOR
 function parseQuestions(rawText) {
   const lines = rawText.replace(/\r/g, '').split('\n');
   const questions = [];
@@ -336,29 +334,22 @@ function parseQuestions(rawText) {
     let trimmed = line.trim();
     if (!trimmed) continue;
 
-    // Detectar preguntas: ej. "1.", "1)", "1.-"
+    // Reconocer preguntas "1.", "1)", "1.-"
     const qMatch = trimmed.match(/^(\d+)[\.\-\)]\s*(.*)/);
     if (qMatch) {
       if (currentQ) questions.push(currentQ);
-      currentQ = {
-        num: qMatch[1],
-        title: qMatch[2],
-        options: []
-      };
+      currentQ = { num: qMatch[1], title: qMatch[2], options: [] };
       continue;
     }
 
-    // Detectar opciones: ej. "a)", "a.-", "A)"
+    // Reconocer alternativas "a)", "a.-", "A)"
     const optMatch = trimmed.match(/^([a-dA-D])[\)\.\-]\s*(.*)/);
     if (optMatch && currentQ) {
-      currentQ.options.push({
-        letter: optMatch[1].toLowerCase(),
-        text: optMatch[2]
-      });
+      currentQ.options.push({ letter: optMatch[1].toLowerCase(), text: optMatch[2] });
       continue;
     }
 
-    // Si es continuación de texto
+    // Continuación de texto
     if (currentQ) {
       if (currentQ.options.length > 0) {
         currentQ.options[currentQ.options.length - 1].text += ' ' + trimmed;
@@ -380,7 +371,7 @@ function processAndRender() {
   container.innerHTML = '';
 
   const modelo = document.getElementById('cfgModelo').value.trim() || 'B';
-  const tituloPie = document.getElementById('cfgTituloPie').value.trim() || 'EXAMEN POLICIA';
+  const tituloPie = document.getElementById('cfgTituloPie').value.trim() || 'EXAMEN POLICIA 43';
   const promo = document.getElementById('cfgPromo').value.trim();
   const fecha = document.getElementById('cfgFecha').value.trim();
   const rawText = document.getElementById('rawQuestionsInput').value;
@@ -388,7 +379,7 @@ function processAndRender() {
   const questions = parseQuestions(rawText);
 
   if (questions.length === 0) {
-    container.innerHTML = '<div style="color:white; margin-top:40px;">No se han detectado preguntas. Asegúrate de que están numeradas (1., 2., a), b)...)</div>';
+    container.innerHTML = '<div style="color:white; margin-top:40px;">No se encontraron preguntas. Comprueba que el formato tenga números en las preguntas (1., 2.) y letras en las opciones (a), b)...)</div>';
     return;
   }
 
@@ -419,11 +410,11 @@ function processAndRender() {
       <div class="cover-instructions">
         <h3>INSTRUCCIONES</h3>
         <ul>
-          <li>La prueba consta de ${questions.length} preguntas[cite: 2].</li>
+          <li>La prueba consta de ${questions.length} preguntas[cite: 2]. Si observa anomalías, comuníquelo al Tribunal[cite: 2].</li>
           <li>Cada pregunta solo tiene una respuesta correcta[cite: 2].</li>
           <li>Solo está permitido bolígrafo azul o negro, tipo BIC[cite: 2].</li>
-          <li>Los errores penalizan: A - [E / (n - 1)] * 10 / P[cite: 2].</li>
-          <li>Dispone del tiempo reglamentario para su realización.</li>
+          <li>Los errores penalizan conforme a la fórmula oficial: <strong>A - [E / (n - 1)] * 10 / P</strong>[cite: 2].</li>
+          <li>Dispone de CINCUENTA MINUTOS[cite: 2].</li>
         </ul>
         <div class="cover-notice">NO PASE LA PÁGINA HASTA QUE SE INDIQUE[cite: 2]</div>
       </div>
@@ -436,7 +427,7 @@ function processAndRender() {
   `;
   container.appendChild(coverSheet);
 
-  // 2. Preguntas (7 por página)
+  // 2. Distribución de preguntas (7 por hoja)
   const QUESTIONS_PER_PAGE = 7;
   let pageIndex = 1;
 
@@ -479,6 +470,25 @@ function processAndRender() {
   }
 }
 
-// Carga inicial
-window.onload = processAndRender;
-</script
+// Carga inicial con texto demostrativo
+window.onload = function() {
+  document.getElementById('rawQuestionsInput').value = `1. Las distinción entre muchedumbre y auditorios fue realizada por:
+a) Kimball Young
+b) Munné
+c) Roger Brown
+
+2. En el ámbito de la prevención de Riesgos Laborales aquella incapacidad que, sin alcanzar el grado total, ocasiona al trabajador una disminución no inferior al 33% en su rendimiento normal para la profesión habitual, sin impedirle la realización de las tareas fundamentales de la misma es una incapacidad:
+a) Temporal
+b) Permanente total
+c) Permanente parcial
+
+3. Según el Real Decreto 704/2011 por el que se aprueba el Reglamento de protección de las infraestructuras críticas, el encargado de proponer a la Secretaría de Estado de Seguridad la declaración de una zona como crítica es:
+a) El Delegado de Gobierno a través del CNPIC
+b) La Comisión Nacional para la Protección de las Infraestructuras Críticas
+c) El Ministro del Interior a través del CNPIC`;
+
+  processAndRender();
+};
+</script>
+</body>
+</html>
